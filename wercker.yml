@@ -1,0 +1,78 @@
+box:
+  id: algas/wercker-tutorial
+
+build:
+  box:
+    id: ubuntu:16.04
+  steps:
+    - install-packages:
+        packages: vim lv curl wget git python3-dev mysql-client libmysqlclient-dev build-essential libssl-dev
+    - script:
+        name: install app
+        code: |
+          pip3 install -r requirements.txt
+
+test:
+  services:
+    - id: mysql:5.7
+      env:
+        MYSQL_RANDOM_ROOT_PASSWORD: yes
+        MYSQL_USER: test
+        MYSQL_PASSWORD: secret
+        MYSQL_DATABASE: user
+  steps:
+    - script:
+        name: env
+        code: env
+    - script:
+        name: Wait for MySQL connection
+        code: sleep 20s
+    - script:
+        name: migrate database
+        code: |
+          ./scripts/migrate.sh
+    - script:
+        name: install app
+        code: |
+          pip3 install -r requirements.txt
+    - script:
+        name: test
+        code: |
+          python3 test.py
+
+deploy:
+  steps:
+    - internal/docker-push:
+        username: $DOCKER_HUB_USERNAME
+        password: $DOCKER_HUB_PASSWORD
+        tag: latest
+        repository: $DOCKER_REPOSITORY
+        registry: https://registry.hub.docker.com
+
+dev:
+  services:
+    - id: mysql:5.7
+      env:
+        MYSQL_RANDOM_ROOT_PASSWORD: yes
+        MYSQL_USER: test
+        MYSQL_PASSWORD: secret
+        MYSQL_DATABASE: user
+  steps:
+    - script:
+        name: env
+        code: env
+    - script:
+        name: Wait for MySQL connection
+        code: sleep 20s
+    - script:
+        name: migrate database
+        code: |
+          ./scripts/migrate.sh
+    - script:
+        name: install app
+        code: |
+          pip3 install -r requirements.txt
+    - internal/watch:
+        code: |
+          python3 app.py
+        reload: true
