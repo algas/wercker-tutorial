@@ -1,0 +1,4 @@
+/.wercker
+/wercker.env
+/.python-version
+__pycache__
