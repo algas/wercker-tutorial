@@ -8,6 +8,10 @@ build:
     - install-packages:
         packages: vim lv curl wget git python3-dev mysql-client libmysqlclient-dev build-essential libssl-dev
     - script:
+        name: install pip3
+        code: |
+          wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py
+    - script:
         name: install app
         code: |
           pip3 install -r requirements.txt
